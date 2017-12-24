@@ -10,13 +10,12 @@ import default_config
 class Fzdm:
 
     def __init__(self, name=''):
-        self.url = "http://manhua.fzdm.com"  # 风之动漫网址
-        self.name = name  # 漫画名称
-        self.timeout = 2000
-
-        self.tools = dom.Tools()
         if name == '':
             print("请输入名称")
+        self.url = "http://manhua.fzdm.com"  # 风之动漫网址
+        self.name = name  # 漫画名称
+        self.timeout = 2000 # 超时时间
+        self.tools = dom.Tools() #工具对象
 
         # 程序运行时间统计
         self.start = time.time()
@@ -31,14 +30,14 @@ class Fzdm:
         print("%s 总消耗时间:%s s,距上次%s s" % (log, total, last))
 
     def run(self):    # 主程序
-        self.cost("开始下载" + self.name)
         self.find_by_name(self.name)
         self.cost("共有张" + str(self.faild_pic) + "图片下载失败")
 
     def find_by_name(self, name):    # 根据漫画名字获取漫画地址(http://manhua.fzdm.com/39/)
+        self.cost("开始下载" + self.name)
         soup = self.tools.get_dom_obj(self.url)
-        title = name + "漫画"
-        href = self.url + "/" + soup.find("a", title=title).get('href')
+        title = name + "漫画" # html tag's title
+        href = self.url + "/" + soup.find("a", title=title).get("href")
         self.sub_commic_url = href  # 漫画地址
         self.cost("已获取到漫画" + self.name + "的地址:" + href)
         self.get_sub_list()
@@ -49,15 +48,15 @@ class Fzdm:
         for i in li_list:  # i是每一话的名字和地址
             url = self.sub_commic_url + i.a.get("href")
             name = i.a.get("title")
-            subs = {"url": url, "name": name}
-            self.current_sub = subs
+            self.current_sub = {"url": url, "name": name}
             self.analyse_sub()
+            return
 
     def analyse_sub(self):  # 解析当前这一话的地址
         self.cost("开始解析" + self.name + self.current_sub['name'])
         self.get_sub_pic()
 
-    def get_sub_pic(self):  # 下载图片
+    def get_sub_pic(self):  # 获取每一话中的图片
         sub = self.current_sub
         n = 1  # 页数
         loop = True
@@ -69,7 +68,7 @@ class Fzdm:
             if page:
                 plist = page.find_all("a", id="mhona")
                 for i in plist:
-                    loop = (i.string == '下一页')
+                    loop = (i.string == '下一页') # 是否最后一页
                     if loop:
                         sub_current_url = sub['url'] + i.get('href')
                         n = n + 1
