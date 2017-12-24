@@ -1,16 +1,36 @@
 
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
 
-class Di(Object):
+from pymongo import MongoClient
+import redis
+import pymysql as mysql
+
+# 依赖注入
+class Di:
 
     def __init__(self):
-        Di.Redis = null
+        Di.redis = None
+        Di.mongodb = None
 
+    # redis client
     def getRedis(self):
-        return Di.Redis 
+        if Di.redis == None:
+            Di.redis = redis.Redis('127.0.0.1',6379) 
+        return Di.redis
 
-    def getMongoDb(self)
-        if Di.MongoDb:
-            return Di.MongoDb
-        else:
-            Di.MongoDb = MongoDb()
-        return Di.MongoDb
+    # mongodb client 
+    def getMongoDb(self):
+        if Di.mongodb == None:
+            Di.mongodb =  MongoClient('127.0.0.1',27017)
+        return Di.mongodb
+
+    def getMysql(self):
+        if Di.mysql == None:
+            Di.mysql = mysql.connect(host='127.0.0.1', port=3306, user='root', passwd='password')
+        return Di.mysql.cursor()
+
+
+
+
+
