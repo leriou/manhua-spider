@@ -4,7 +4,6 @@
 
 from pymongo import MongoClient
 import redis
-import pymysql as mysql
 
 # 依赖注入
 class Di:
@@ -24,13 +23,3 @@ class Di:
         if Di.mongodb == None:
             Di.mongodb =  MongoClient('127.0.0.1',27017)
         return Di.mongodb
-
-    def getMysql(self):
-        if Di.mysql == None:
-            Di.mysql = mysql.connect(host='127.0.0.1', port=3306, user='root', passwd='password')
-        return Di.mysql.cursor()
-
-
-
-
-

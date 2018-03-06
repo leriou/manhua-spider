@@ -1,0 +1,24 @@
+1520298757832	geckodriver	INFO	geckodriver 0.19.1
+1520298757845	geckodriver	INFO	Listening on 127.0.0.1:57156
+1520298758014	mozrunner::runner	INFO	Running command: "/Applications/Firefox.app/Contents/MacOS/firefox-bin" "-marionette" "-profile" "/var/folders/_c/37_qc7nj0992tbpc7ys6pj0h0000gn/T/rust_mozprofile.5JjjPQsSeVcR"
+1520298758697	Marionette	INFO	Enabled via --marionette
+2018-03-06 09:12:39.804 plugin-container[78440:30884686] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0xa33f, name = 'com.apple.tsm.portname'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+2018-03-06 09:12:40.040 plugin-container[78440:30884686] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0xa3bb, name = 'com.apple.coredrag'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+1520298760245	Marionette	INFO	Listening on port 57161
+1520298760307	Marionette	WARN	TLS certificate errors will be ignored for this session
+2018-03-06 09:12:40.658 plugin-container[78441:30884822] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0x9f3f, name = 'com.apple.tsm.portname'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+2018-03-06 09:12:40.818 plugin-container[78441:30884822] *** CFMessagePort: bootstrap_register(): failed 1100 (0x44c) 'Permission denied', port = 0x198b, name = 'com.apple.coredrag'
+See /usr/include/servers/bootstrap_defs.h for the error codes.
+JavaScript warning: http://static.fzdm.com/jquery-1.9.1.min.js?v=1, line 1: Using //@ to indicate sourceMappingURL pragmas is deprecated. Use //# instead
+JavaScript warning: http://static.fzdm.com/fzdm.js?v=1, line 9: unreachable code after return statement
+JavaScript warning: http://static.fzdm.com/jquery-1.9.1.min.js?v=1, line 1: Using //@ to indicate sourceMappingURL pragmas is deprecated. Use //# instead
+JavaScript warning: http://static.fzdm.com/fzdm.js?v=1, line 9: unreachable code after return statement
+JavaScript error: http://bdimg.share.baidu.com/static/api/js/trans/logger.js?v=d16ec0e3.js, line 1: TypeError: n.ajax.request is not a function
+JavaScript warning: http://static.fzdm.com/jquery-1.9.1.min.js?v=1, line 1: Using //@ to indicate sourceMappingURL pragmas is deprecated. Use //# instead
+JavaScript warning: http://static.fzdm.com/fzdm.js?v=1, line 9: unreachable code after return statement
+2018-03-06 09:13:43.107 firefox-bin[78438:30884547] IMKInputSession [0x12a52a790 presentFunctionRowItemTextInputViewWithEndpoint:completionHandler:] : [self textInputContext]=0x122ca6160 *NO* NSRemoteViewController to client, NSError=Error Domain=NSCocoaErrorDomain Code=4097 "connection from pid 0" UserInfo={NSDebugDescription=connection from pid 0}, com.apple.inputmethod.EmojiFunctionRowItem
+2018-03-06 09:13:50.666 firefox-bin[78438:30884547] IMKInputSession [0x12a52a790 presentFunctionRowItemTextInputViewWithEndpoint:completionHandler:] : [self textInputContext]=0x122ca6160 *NO* NSRemoteViewController to client, NSError=Error Domain=NSCocoaErrorDomain Code=4097 "connection from pid 0" UserInfo={NSDebugDescription=connection from pid 0}, com.apple.inputmethod.EmojiFunctionRowItem
+2018-03-06 09:14:01.575 firefox-bin[78438:30884547] IMKInputSession [0x12a52a790 presentFunctionRowItemTextInputViewWithEndpoint:completionHandler:] : [self textInputContext]=0x122ca6160 *NO* NSRemoteViewController to client, NSError=Error Domain=NSCocoaErrorDomain Code=4097 "connection from pid 0" UserInfo={NSDebugDescription=connection from pid 0}, com.apple.inputmethod.EmojiFunctionRowItem

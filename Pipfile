@@ -12,6 +12,7 @@ requests = "*"
 pymongo = "*"
 selenium = "*"
 requestium = "*"
+redis = "*"
 
 
 [dev-packages]
