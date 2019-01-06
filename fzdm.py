@@ -1,147 +1,142 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import dom_bs4 as dom
-import urllib.request
+import tools
 import time
+import sys
 import os
-import di
-
 
 class Fzdm:
 
-    def __init__(self, name=''):
-        if name == '':
-            print("请输入名称")
-        self.url = "http://manhua.fzdm.com"  # 风之动漫网址
-        self.name = name  # 漫画名称
-    
-        self.tools = dom.Tools() #工具对象
-        self.di = di.Di()
-        self.mongodb  = self.di.getMongoDb()
-        self.redis    = self.di.getRedis()
+    def __init__(self):
+        self.tools = tools.Tools() #工具对象
+        self.mongodb = self.tools.get_mongodb()
+        self.dbname = "mh"
+        self.cache_name = "mh-cache"
+        self.list_name = "mh-list"
+        self.subs_name = "mh-subs"
+        self.pics_name = "mh-pics"
+        self.list_url = "http://manhua.fzdm.com"  # 风之动漫网址
 
-        self.co = self.mongodb["fzdm"] # 集合
+        self.db = self.mongodb[self.dbname]
+        self.list_collection = self.db[self.list_name]
+        self.pics_collection = self.db[self.pics_name]
+        self.subs_collection = self.db[self.subs_name]
+        self.tools.set_cache(self.dbname, self.cache_name)
 
         # 程序运行时间统计
         self.start = time.time()
         self.end = 0
-        self.record = []
-        self.faild_pic = 0
 
     def cost(self, log=''):
-        tmp = time.time()
-        total, last = tmp - self.start, tmp - self.end
-        self.end = tmp
-        print("%s 总消耗时间:%s s,距上次%s s" % (log, total, last))
+        self.tools.cost(log)
 
     def run(self):    # 主程序
-        url = self.find_from_list(self.name)
-        sub_list = self.get_sub_list(url)
-        self.analyse_sub(sub_list)
+        self.get_manhua_list()
+        self.get_sub_list()
+        self.analyse_sub()
         self.tools.close_browser()
         self.cost("下载完成")
 
-    def find_from_list(self,name):    # 获取漫画列表地址(http://manhua.fzdm.com/)
-        self.cost("开始下载漫画 %s" % self.name)
-        # 检查列表中是否有该漫画的地址
-        rec = self.co["mh_list"].find_one({"name":self.name})
-        if rec["url"] != None:
-            return rec["url"]
-        else:   
-            html = self.tools.browser_get_html(self.url)
-            page = {
-                "url":self.url,
-                "name":"风之动漫列表",
-                "cached":True,
-                "text":html,
-                "status":1,
-                "date_time":self.tools.get_time()
-            }
-            self.co["cached_url"].insert(page)
-            soup = self.tools.get_dom_by_html(html)
-            for block in soup.select(".round"):
-                mh_info = {
-                    "name": block.select("li")[1].string,
-                    "url":self.url + "/" + block.select("li a")[1].get("href"),
-                    "date_time":self.tools.get_time()
-                } 
-                self.co["mh_list"].insert(mh_info)
-            self.cost("风之动漫列表解析完毕")
+    '''
+    获取漫画列表
+    '''
+    def get_manhua_list(self):
+        soup = self.tools.get_dom_obj(self.list_url)
+        for block in soup.select(".round"):
+            mh_id = block.select("li a")[1].get("href").strip("/")
+            mh_name = block.select("li")[1].string
+            mh_url = self.list_url + "/" + mh_id +"/"
+            img = block.select("li a img")[0].get("src")
+            title = block.select("li a")[1].get("title")
+            mh_info = {
+                "_id":mh_id,
+                "name": mh_name,
+                "commic_url":mh_url,
+                "img":img,
+                "title":title,
+                "datetime":self.tools.get_time()
+            } 
+            self.list_collection.replace_one({"_id":mh_id}, mh_info, True)
+        self.tools.cost("总漫画列表下载完毕 ^_^")
 
-    def get_sub_list(self,url):  # 获取子列表页面的每一话地址
-        soup = self.tools.get_dom_obj(url,True)
-        li_list = soup.find_all("li", "pure-u-1-2 pure-u-lg-1-4")
-        sublist = []
-        for i in li_list:  # i是每一话的名字和地址
-            sub_info = {
-                "url": url + i.a.get("href"), 
-                "sub_name": i.a.get("title"),
-                "created": self.tools.get_time(),
-                "commic_name":self.name
-            }
-            sublist.append(sub_info)
-            self.co["mh_sub_list"].save(sub_info)
-        return sublist
+    """
+    更新所有漫画章节信息
+    """
+    def get_sub_list(self):  # 获取漫画子列表页面的每一话地址
+        condition = {}
+        if len(sys.argv) == 2:
+            condition["name"] = sys.argv[1]
+        for i in self.list_collection.find(condition):
+            url = i["commic_url"]
+            soup = self.tools.get_dom_obj(url)
+            li_list = soup.find_all("li", "pure-u-1-2 pure-u-lg-1-4")
+            self.cost("正在下载:%s的漫画列表" %  i["name"]) 
+            for j in li_list:  # j是每一话的名字和地址
+                sub_id = j.a.get("href").strip("/")
+                doc_id = i["_id"] +"_"+str(sub_id)
+                sub_info = {
+                    "_id": doc_id,
+                    "sub_url": url + sub_id + "/", 
+                    "sub_name": j.a.get("title"),
+                    "datetime": self.tools.get_time(),
+                    "commic_name": i["name"],
+                    "download": False
+                }
+                self.subs_collection.replace_one({"_id":doc_id}, sub_info, True )
+            self.cost("%s的漫画列表下载结束" % i["name"])
+            self.list_collection.update_one({"_id":i["_id"]}, {"$set":{
+                "subs_num": self.subs_collection.count_documents({"commic_name":i["name"]}),
+                "latest_subs": self.subs_collection.find_one({"commic_name":i["name"]})
+            }}, True)
 
-    def analyse_sub(self,sub_list):  # 解析当前这一话的地址
-        
-        for sub in sub_list:
-            self.cost("开始解析" + self.name + sub['sub_name'])
-            n = 1  # 页数
+    """
+    获取漫画每一话的信息
+    """
+    def analyse_sub(self):  
+        condition = {"download": False}
+        if len(sys.argv) == 2:
+            condition["commic_name"] = sys.argv[1]
+        for s in self.subs_collection.find(condition):
+            self.cost("开始解析%s ---%s " % (s["commic_name"], s['sub_name']))
+            page_n = 0  # 页数
             loop = True
-            current_url = sub['url']  # 当前页面的具体地址
-            lis = []
-            t = time.time()
+            current_url = s['sub_url']  # 当前页面的具体地址
             while loop:
-                page = self.tools.get_dom_obj(current_url,True)
+                self.cost("第"+ str(page_n + 1) + "页")
+                page = self.tools.get_dom_obj(current_url, True)
+                pic_url = current_url
                 if page:
-                    plist = page.find_all("a", id="mhona")
+                    plist = page.select(".navigation a")
                     for i in plist:
-                        loop = (i.string == '下一页') # 是否最后一页
+                        loop = (i.string == '下一页') # 是否有下一页
                         if loop:
-                            current_url = sub['url'] + i.get('href')
-                            n = n + 1
+                            current_url = s['sub_url'] + i.get('href')
+                            page_n += 1
                     img = page.find("img", id="mhpic")
+                    pic_id = s["_id"] +"_"+ str(page_n)
                     obj = {
-                        "src":self.url_filter(img.get('src')),
-                        "pic_name":img.get('alt'),
-                        "pic_num":n,
-                        "commic_name":self.name,
-                        "sub_name":sub["sub_name"],
-                        "cteated":self.tools.get_time()
+                        "_id": pic_id, 
+                        "pic_url": pic_url,
+                        "pic_src": self.url_filter(img.get('src')),
+                        "pic_name": s["sub_name"] + "第"+ str(page_n) + "话",
+                        "pic_num": page_n,
+                        "commic_name": s["commic_name"],
+                        "sub_name": s["sub_name"],
+                        "datetime": self.tools.get_time()
                     }
-                    self.co["mh_pic_list"].save(obj)
-                    lis.append(obj)
+                    self.pics_collection.replace_one({"_id":pic_id}, obj, True)
                 else:
                     loop = False
-        
-        
+            self.subs_collection.update({"_id":s["_id"]}, 
+                {"$set":{
+                    "picnum": self.pics_collection.count_documents({"sub_name":s["sub_name"]}),
+                    "download":True
+                    }}, True)
+
+            
     def url_filter(self, pic):
+        url = pic
         if pic.find('http:') == -1:
             url = 'http:' + pic
-        else:
-            url = pic
         return url
 
-    def down_obj(self, obj):  # 下载
-        if default_config.app_config['root']:
-            root_dic = default_config.app_config['root'] + self.name
-        else:
-            root_dic = self.name
-        r_path = self.tools.open_dir(root_dic)  # 作品目录
-        s_path = os.path.join(r_path, obj['name'])
-        if not os.path.isdir(s_path):
-            os.mkdir(s_path)
-        for j in obj['list']:
-            filename = s_path + "/" + j['name'] + "_" + str(j['num']) + ".jpg"
-            if not os.path.exists(filename):
-                try:
-                    pic = j['pic']
-                    test_code = urllib.request.urlopen(pic, timeout=self.timeout).code
-                    if test_code == 200:
-                        urllib.request.urlretrieve(pic, filename)
-                    else:
-                        print("code:%d \n", test_code)
-                except:
-                    self.faild_pic = self.faild_pic + 1
-                    print("pic: %s request is timeout" % j['pic'])
