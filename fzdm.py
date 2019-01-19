@@ -3,7 +3,6 @@
 import tools
 import time
 import sys
-import os
 
 class Fzdm:
 
@@ -22,6 +21,8 @@ class Fzdm:
         self.pics_collection = self.db[self.pics_name]
         self.subs_collection = self.db[self.subs_name]
         self.tools.set_cache(self.dbname, self.cache_name)
+        self.tools.create_idx(self.list_collection, ["name"])
+        self.tools.create_idx(self.subs_collection, ["commic_name"], False)
 
         # 程序运行时间统计
         self.start = time.time()

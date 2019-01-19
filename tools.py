@@ -77,7 +77,7 @@ class Tools:
     def mongo_clear_cache(self):
         self.cache.update_many({},{"$set":{"text":""}})
     
-    def create_idx(self, db, indexs):
+    def create_idx(self, db, indexs, unique=True):
         db_idx = db.index_information()
         idx_list = [db_idx[j]["key"][0][0] for j in db_idx]
         for idx_field in indexs:
@@ -86,7 +86,7 @@ class Tools:
                     [(idx_field, ASCENDING)], 
                     background=True,
                     name=idx_field + "_idx", 
-                    unique=True)
+                    unique=unique)
 
     # 从html字符串获取dom对象
     def get_dom_by_html(self,html):
